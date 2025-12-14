@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ST-10 Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0f172a;
+            --primary-hover: #1e293b;
+            --accent: #0ea5e9;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text: #334155;
+            --text-light: #64748b;
+            --error: #ef4444;
+            --success: #10b981;
+            --radius: 8px;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        /* --- Auth Screen --- */
+        .auth-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: var(--surface);
+            padding: 40px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .auth-card h1 { margin: 0 0 8px 0; color: var(--primary); font-size: 24px; }
+        .auth-card p { color: var(--text-light); margin-bottom: 32px; font-size: 14px; }
+
+        .role-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 16px;
+            margin-bottom: 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .role-btn:hover {
+            border-color: var(--accent);
+            background: #f0f9ff;
+        }
+
+        .role-btn div { font-weight: 500; color: var(--primary); }
+        .role-btn span { font-size: 12px; color: var(--text-light); }
+
+        /* --- Main Dashboard --- */
+        .dashboard { display: none; }
+        .dashboard.active { display: block; }
+
+        .navbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .brand { font-weight: 600; color: var(--primary); font-size: 18px; }
+        
+        .user-menu { display: flex; align-items: center; gap: 16px; font-size: 14px; }
+        .user-badge { 
+            background: #e2e8f0; 
+            padding: 4px 12px; 
+            border-radius: 99px; 
+            font-size: 12px; 
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            font-weight: 500;
+            padding: 8px;
+        }
+        .logout-btn:hover { color: var(--error); }
+
+        .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+
+        .form-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: 32px;
+            box-shadow: var(--shadow);
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        h2 { margin: 0 0 8px 0; font-size: 20px; color: var(--primary); }
+        .subtitle { color: var(--text-light); font-size: 14px; margin-bottom: 24px; display: block; }
+
+        /* --- Forms --- */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .grid-4 { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text); }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+        }
+
+        .checkbox-group { display: flex; gap: 24px; padding: 8px 0; }
+        .checkbox-item { display: flex; align-items: center; gap: 8px; }
+        .checkbox-item input { width: 16px; height: 16px; }
+        .checkbox-item label { margin: 0; font-weight: 400; }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            background: var(--primary);
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn:hover { background: var(--primary-hover); }
+        .btn:disabled { opacity: 0.7; cursor: not-allowed; }
+        .btn-secondary { background: white; border: 1px solid var(--border); color: var(--text); margin-top: 12px; }
+        .btn-secondary:hover { background: var(--bg); }
+
+        .info-text { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+
+        /* --- Results & Alerts --- */
+        .alert { padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; display: none; }
+        .alert.error { background: #fef2f2; color: var(--error); border: 1px solid #fecaca; display: block; }
+        .alert.success { background: #f0fdf4; color: var(--success); border: 1px solid #bbf7d0; display: block; }
+
+        .result-box {
+            margin-top: 24px;
+            padding: 20px;
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: var(--radius);
+            text-align: center;
+            display: none;
+        }
+        .result-box.active { display: block; }
+
+        .spinner {
+            width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 640px) {
+            .grid-2, .grid-4 { grid-template-columns: 1fr; }
+            .container { margin: 20px auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Authentication Screen -->
+    <div id="authScreen" class="auth-wrapper">
+        <div class="auth-card">
+            <h1>ST-10 Portal</h1>
+            <p>Select your role to continue</p>
+            
+            <button class="role-btn" onclick="login('user')">
+                <div>Supplier Login</div>
+                <span>Fill Initial Details</span>
+            </button>
+            
+            <button class="role-btn" onclick="login('signer')">
+                <div>Authorized Signer</div>
+                <span>Finalize & Sign</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard" class="dashboard">
+        <nav class="navbar">
+            <div class="brand">ST-10 Portal</div>
+            <div class="user-menu">
+                <span id="userBadge" class="user-badge">User</span>
+                <span id="userName">John Doe</span>
+                <button class="logout-btn" onclick="logout()">Sign Out</button>
+            </div>
+        </nav>
+
+        <div class="container">
+            
+            <!-- User Form -->
+            <div id="userFormSection" class="form-card" style="display: none;">
+                <h2>Supplier Information</h2>
+                <span class="subtitle">Complete the exemption details below.</span>
+                
+                <div id="fillAlert" class="alert"></div>
+
+                <form id="fillForm">
+                    <div class="form-group">
+                        <label>Name of Supplier</label>
+                        <input type="text" id="nameOfSupplier" required placeholder="Company Name">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Supplier Address</label>
+                        <div class="grid-4">
+                            <input type="text" id="numberAndStreet" placeholder="Street" required style="grid-column: span 2;">
+                            <input type="text" id="city" placeholder="City" required>
+                            <input type="text" id="state" placeholder="State" required maxlength="2">
+                            <input type="text" id="zipCode" placeholder="Zip" required style="grid-column: span 4;">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Exemption Type</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item"><input type="checkbox" id="cb1"><label for="cb1">Resale</label></div>
+                            <div class="checkbox-item"><input type="checkbox" id="cb2"><label for="cb2">Lease/Rental</label></div>
+                            <div class="checkbox-item"><input type="checkbox" id="cb3"><label for="cb3">Packaging</label></div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn" id="fillBtn">
+                        <span class="btn-text">Generate PDF</span>
+                        <div class="spinner" style="display: none;"></div>
+                    </button>
+                    <button type="reset" class="btn btn-secondary">Reset Form</button>
+                </form>
+
+                <div id="fillResult" class="result-box">
+                    <h3 style="margin: 0 0 8px 0; color: var(--primary);">Ready for Signing</h3>
+                    <p style="font-size: 14px; color: var(--text-light); margin-bottom: 16px;">The PDF has been generated.</p>
+                    <a id="fillDownloadLink" class="btn" style="width: auto; display: inline-flex; text-decoration: none;">Download PDF</a>
+                </div>
+            </div>
+
+            <!-- Signer Form -->
+            <div id="signerFormSection" class="form-card" style="display: none;">
+                <h2>Dealer Certification</h2>
+                <span class="subtitle">Review the document and apply your digital signature.</span>
+
+                <div id="signAlert" class="alert"></div>
+
+                <form id="signForm">
+                    <div class="form-group">
+                        <label>Source Document (Filled PDF)</label>
+                        <input type="file" id="pdfFile" accept=".pdf" required>
+                        <div class="info-text">Upload the PDF generated by the supplier.</div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Name of Dealer</label>
+                            <input type="text" id="dealerName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Virginia Account No.</label>
+                            <input type="text" id="accountNo" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Trading As</label>
+                        <input type="text" id="tradingAs" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Dealer Address</label>
+                        <div class="grid-4">
+                            <input type="text" id="dStreet" placeholder="Street" required style="grid-column: span 2;">
+                            <input type="text" id="dCity" placeholder="City" required>
+                            <input type="text" id="dState" placeholder="State" required maxlength="2">
+                            <input type="text" id="dZip" placeholder="Zip" required style="grid-column: span 4;">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Kind of Business</label>
+                        <textarea id="businessType" rows="2" required></textarea>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Signer Title</label>
+                            <input type="text" id="signerTitle" required placeholder="e.g. Director">
+                        </div>
+                        <div class="form-group">
+                            <label>Authorization Code</label>
+                            <input type="password" id="authCode" required placeholder="••••••••">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn" id="signBtn">
+                        <span class="btn-text">Sign & Finalize</span>
+                        <div class="spinner" style="display: none;"></div>
+                    </button>
+                    <button type="reset" class="btn btn-secondary">Reset Form</button>
+                </form>
+
+                <div id="signResult" class="result-box">
+                    <h3 style="margin: 0 0 8px 0; color: var(--success);">Successfully Signed</h3>
+                    <p style="font-size: 14px; color: var(--text-light); margin-bottom: 16px;">The document is now locked and legally binding.</p>
+                    <a id="signDownloadLink" class="btn" style="width: auto; display: inline-flex; text-decoration: none; background: var(--success);">Download Final PDF</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:7071/api';
+        let currentAuthToken = '';
+
+        function login(role) {
+            const authScreen = document.getElementById('authScreen');
+            const dashboard = document.getElementById('dashboard');
+            const userForm = document.getElementById('userFormSection');
+            const signerForm = document.getElementById('signerFormSection');
+            
+            // Set State based on Role
+            if (role === 'user') {
+                currentAuthToken = 'user123';
+                document.getElementById('userName').textContent = 'John Supplier';
+                document.getElementById('userBadge').textContent = 'Supplier';
+                document.getElementById('userBadge').style.background = '#e0f2fe';
+                document.getElementById('userBadge').style.color = '#0284c7';
+                userForm.style.display = 'block';
+                signerForm.style.display = 'none';
+            } else {
+                currentAuthToken = 'signer456';
+                document.getElementById('userName').textContent = 'Jane Dealer';
+                document.getElementById('userBadge').textContent = 'Authorized Signer';
+                document.getElementById('userBadge').style.background = '#f0fdf4';
+                document.getElementById('userBadge').style.color = '#16a34a';
+                userForm.style.display = 'none';
+                signerForm.style.display = 'block';
+            }
+
+            // Transition UI
+            authScreen.style.display = 'none';
+            dashboard.classList.add('active');
+        }
+
+        function logout() {
+            document.getElementById('dashboard').classList.remove('active');
+            document.getElementById('authScreen').style.display = 'flex';
+            
+            // Reset Forms
+            document.getElementById('fillForm').reset();
+            document.getElementById('signForm').reset();
+            document.getElementById('fillResult').classList.remove('active');
+            document.getElementById('signResult').classList.remove('active');
+        }
+
+        // --- User Form Handler ---
+        document.getElementById('fillForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            setLoading('fillBtn', true);
+            hideAlert('fillAlert');
+
+            const data = {
+                name_of_supplier: document.getElementById('nameOfSupplier').value,
+                number_and_street: document.getElementById('numberAndStreet').value,
+                city: document.getElementById('city').value,
+                state: document.getElementById('state').value,
+                zip_code: document.getElementById('zipCode').value,
+                check_box_1: document.getElementById('cb1').checked,
+                check_box_2: document.getElementById('cb2').checked,
+                check_box_3: document.getElementById('cb3').checked
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/fill`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentAuthToken}` },
+                    body: JSON.stringify(data)
+                });
+
+                if (!res.ok) throw new Error((await res.json()).detail || 'Error generating PDF');
+
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.getElementById('fillDownloadLink');
+                link.href = url;
+                link.download = `st10-filled-${Date.now()}.pdf`;
+                
+                document.getElementById('fillResult').classList.add('active');
+            } catch (err) {
+                showAlert('fillAlert', err.message, 'error');
+            } finally {
+                setLoading('fillBtn', false);
+            }
+        });
+
+        // --- Signer Form Handler ---
+        document.getElementById('signForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            setLoading('signBtn', true);
+            hideAlert('signAlert');
+
+            const formData = new FormData();
+            formData.append('pdf_file', document.getElementById('pdfFile').files[0]);
+            formData.append('name_of_dealer', document.getElementById('dealerName').value);
+            formData.append('virginia_account_number', document.getElementById('accountNo').value);
+            formData.append('trading_as_name', document.getElementById('tradingAs').value);
+            formData.append('number_and_street', document.getElementById('dStreet').value);
+            formData.append('city', document.getElementById('dCity').value);
+            formData.append('state', document.getElementById('dState').value);
+            formData.append('zip_code', document.getElementById('dZip').value);
+            formData.append('business_type', document.getElementById('businessType').value);
+            formData.append('title', document.getElementById('signerTitle').value);
+            formData.append('auth_code', document.getElementById('authCode').value);
+
+            try {
+                const res = await fetch(`${API_BASE}/sign`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${currentAuthToken}` },
+                    body: formData
+                });
+
+                if (!res.ok) throw new Error((await res.json()).detail || 'Error signing PDF');
+
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.getElementById('signDownloadLink');
+                link.href = url;
+                link.download = `st10-final-${Date.now()}.pdf`;
+
+                document.getElementById('signResult').classList.add('active');
+            } catch (err) {
+                showAlert('signAlert', err.message, 'error');
+            } finally {
+                setLoading('signBtn', false);
+            }
+        });
+
+        // Helpers
+        function setLoading(btnId, isLoading) {
+            const btn = document.getElementById(btnId);
+            const text = btn.querySelector('.btn-text');
+            const spinner = btn.querySelector('.spinner');
+            btn.disabled = isLoading;
+            text.style.display = isLoading ? 'none' : 'block';
+            spinner.style.display = isLoading ? 'block' : 'none';
+        }
+
+        function showAlert(id, msg, type) {
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.className = `alert ${type}`;
+        }
+
+        function hideAlert(id) {
+            const el = document.getElementById(id);
+            el.className = 'alert';
+        }
+    </script>
+</body>
+</html>
