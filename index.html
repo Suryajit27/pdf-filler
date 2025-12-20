@@ -495,10 +495,21 @@
         // Router - Handle hash navigation
         function route() {
             const hash = window.location.hash.slice(1);
-            const [path, id] = hash.split('/');
-
-            // Hide all pages
+            console.log('Routing to:', hash);
+            
+            // Hide all pages first
             document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            
+            if (!hash) {
+                document.getElementById('supplierPage').classList.remove('hidden');
+                return;
+            }
+            
+            const parts = hash.split('/').filter(p => p); // Remove empty parts
+            const path = parts[0];
+            const id = parts[1];
+            
+            console.log('Path:', path, 'ID:', id);
 
             if (path === 'sign' && id) {
                 currentFormId = id;
@@ -507,24 +518,19 @@
                 currentFormId = id;
                 showDownloadPage(id);
             } else if (path === 'my-forms') {
-                showMyFormsPage();
+                document.getElementById('myFormsPage').classList.remove('hidden');
             } else {
-                showSupplierPage();
+                document.getElementById('supplierPage').classList.remove('hidden');
             }
         }
-
-        window.addEventListener('hashchange', route);
-        window.addEventListener('load', route);
 
         // Show Pages
         function showSupplierPage() {
             window.location.hash = '';
-            document.getElementById('supplierPage').classList.remove('hidden');
         }
 
         function showMyFormsPage() {
             window.location.hash = 'my-forms';
-            document.getElementById('myFormsPage').classList.remove('hidden');
         }
 
         function showMyForms() {
@@ -533,6 +539,8 @@
 
         async function showSignPage(formId) {
             document.getElementById('signPage').classList.remove('hidden');
+            hideAlert('signAlert');
+            hideResult('signResult');
             
             try {
                 const res = await fetch(`${API_BASE}/forms/${formId}`);
@@ -545,15 +553,17 @@
                     document.getElementById('infoDate').textContent = new Date(data.created_at).toLocaleDateString();
                     document.getElementById('signInfo').classList.remove('hidden');
                 } else {
-                    showAlert('signAlert', 'Form not found', 'error');
+                    showAlert('signAlert', data.error || 'Form not found', 'error');
                 }
             } catch (err) {
+                console.error('Error loading form:', err);
                 showAlert('signAlert', 'Error loading form details', 'error');
             }
         }
 
         async function showDownloadPage(formId) {
             document.getElementById('downloadPage').classList.remove('hidden');
+            hideAlert('downloadAlert');
 
             try {
                 const res = await fetch(`${API_BASE}/forms/${formId}`);
@@ -567,12 +577,25 @@
 
                     document.getElementById('downloadBtn').onclick = () => downloadPDF(formId);
                 } else {
-                    showAlert('downloadAlert', 'Form not found', 'error');
+                    showAlert('downloadAlert', data.error || 'Form not found', 'error');
                 }
             } catch (err) {
+                console.error('Error loading form:', err);
                 showAlert('downloadAlert', 'Error loading form details', 'error');
             }
         }
+
+        // Initialize routing
+        window.addEventListener('hashchange', route);
+        window.addEventListener('load', route);
+        
+        // Call immediately in case hash is already set
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', route);
+        } else {
+            route();
+        }
+
 
         // Supplier Form Submit
         document.getElementById('supplierForm').addEventListener('submit', async (e) => {
