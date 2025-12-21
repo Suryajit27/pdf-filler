@@ -579,17 +579,40 @@ async function showSignPage(formId) {
     }
 }
 
-// Sign with authentication (no PIN needed)
+// Sign with authentication (pass token to backend)
 async function signWithAuth() {
     setLoading('signSubmitBtn', true);
     hideAlert('signAlert');
     hideResult('signResult');
 
     try {
+        // Get auth info from Static Web Apps
+        const authRes = await fetch('/.auth/me');
+        const authData = await authRes.json();
+        
+        if (!authData.clientPrincipal) {
+            showAlert('signAlert', 'Not authenticated. Please refresh and sign in.', 'error');
+            setLoading('signSubmitBtn', false);
+            return;
+        }
+        
+        const userEmail = authData.clientPrincipal.userDetails;
+        const userId = authData.clientPrincipal.userId;
+        const accessToken = authData.clientPrincipal.claims?.find(c => c.typ === 'access_token')?.val || userId;
+        
+        // Send to backend with auth info
         const res = await fetch(`${API_BASE}/sign-form/${currentFormId}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({}) // No PIN needed, auth handled by headers
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-User-Email': userEmail,
+                'X-User-Id': userId,
+                'Authorization': `Bearer ${accessToken}`
+            },
+            body: JSON.stringify({
+                user_email: userEmail,
+                user_id: userId
+            })
         });
 
         const data = await res.json();
@@ -600,6 +623,7 @@ async function signWithAuth() {
             showAlert('signAlert', data.error || 'Error signing certificate', 'error');
         }
     } catch (err) {
+        console.error('Sign error:', err);
         showAlert('signAlert', 'Network error. Please try again.', 'error');
     } finally {
         setLoading('signSubmitBtn', false);
