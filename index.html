@@ -405,38 +405,38 @@
         </div>
 
         <!-- Sign Page (Accessed via Email Link) -->
-        <div id="signPage" class="page hidden">
-            <div class="card">
-                <h2>Sign Certificate</h2>
-                <span class="subtitle">Review the supplier information and enter your PIN to sign.</span>
+<!-- Sign Page (Accessed via Email Link) -->
+<div id="signPage" class="page hidden">
+    <div class="card">
+        <h2>Sign Certificate</h2>
+        <span class="subtitle">Authenticated as: <strong id="authUserEmail">Loading...</strong></span>
 
-                <div id="signAlert" class="alert"></div>
+        <div id="signAlert" class="alert"></div>
 
-                <div id="signInfo" class="info-box hidden">
-                    <p><strong>Supplier:</strong> <span id="infoSupplier"></span></p>
-                    <p><strong>Address:</strong> <span id="infoAddress"></span></p>
-                    <p><strong>Date Submitted:</strong> <span id="infoDate"></span></p>
-                </div>
-
-                <form id="signForm">
-                    <div class="form-group">
-                        <label>Enter Your PIN Code *</label>
-                        <input type="password" id="signerPin" required placeholder="••••" maxlength="4" class="pin-input">
-                        <small style="color: var(--text-light); font-size: 12px;">Enter your 4-digit authorization PIN to sign this certificate.</small>
-                    </div>
-
-                    <button type="submit" class="btn btn-success" id="signSubmitBtn">
-                        <span class="btn-text">Sign Certificate</span>
-                        <div class="spinner hidden"></div>
-                    </button>
-                </form>
-
-                <div id="signResult" class="result-box">
-                    <h3>✓ Certificate Signed Successfully</h3>
-                    <p>The supplier has been notified via email and can now download the signed certificate.</p>
-                </div>
-            </div>
+        <div id="signInfo" class="info-box hidden">
+            <p><strong>Supplier:</strong> <span id="infoSupplier"></span></p>
+            <p><strong>Address:</strong> <span id="infoAddress"></span></p>
+            <p><strong>Date Submitted:</strong> <span id="infoDate"></span></p>
         </div>
+
+        <div style="background: #fffbeb; border: 1px solid #fcd34d; padding: 16px; border-radius: 6px; margin-bottom: 24px;">
+            <p style="margin: 0; font-size: 14px; color: #92400e;">
+                ⚠️ By clicking "Sign Certificate" below, you authorize this certificate with your Microsoft account.
+            </p>
+        </div>
+
+        <button class="btn btn-success" id="signSubmitBtn" onclick="signWithAuth()">
+            <span class="btn-text">Sign Certificate</span>
+            <div class="spinner hidden"></div>
+        </button>
+
+        <div id="signResult" class="result-box">
+            <h3>✓ Certificate Signed Successfully</h3>
+            <p>The supplier has been notified via email and can now download the signed certificate.</p>
+        </div>
+    </div>
+</div>
+
 
         <!-- Download Page (Accessed via Email Link) -->
         <div id="downloadPage" class="page hidden">
@@ -537,29 +537,74 @@
             showMyFormsPage();
         }
 
-        async function showSignPage(formId) {
-            document.getElementById('signPage').classList.remove('hidden');
-            hideAlert('signAlert');
-            hideResult('signResult');
-            
-            try {
-                const res = await fetch(`${API_BASE}/forms/${formId}`);
-                const data = await res.json();
-
-                if (res.ok) {
-                    document.getElementById('infoSupplier').textContent = data.name_of_supplier;
-                    document.getElementById('infoAddress').textContent = 
-                        `${data.number_and_street}, ${data.city}, ${data.state} ${data.zip_code}`;
-                    document.getElementById('infoDate').textContent = new Date(data.created_at).toLocaleDateString();
-                    document.getElementById('signInfo').classList.remove('hidden');
-                } else {
-                    showAlert('signAlert', data.error || 'Form not found', 'error');
-                }
-            } catch (err) {
-                console.error('Error loading form:', err);
-                showAlert('signAlert', 'Error loading form details', 'error');
-            }
+async function showSignPage(formId) {
+    document.getElementById('signPage').classList.remove('hidden');
+    hideAlert('signAlert');
+    hideResult('signResult');
+    
+    // Get authenticated user info
+    try {
+        const authRes = await fetch('/.auth/me');
+        const authData = await authRes.json();
+        
+        if (authData.clientPrincipal) {
+            const userEmail = authData.clientPrincipal.userDetails;
+            document.getElementById('authUserEmail').textContent = userEmail;
+        } else {
+            // Not authenticated - redirect to login
+            window.location.href = `/.auth/login/aad?post_login_redirect_uri=${window.location.href}`;
+            return;
         }
+    } catch (err) {
+        console.error('Auth check failed:', err);
+    }
+    
+    // Load form details
+    try {
+        const res = await fetch(`${API_BASE}/forms/${formId}`);
+        const data = await res.json();
+
+        if (res.ok) {
+            document.getElementById('infoSupplier').textContent = data.name_of_supplier;
+            document.getElementById('infoAddress').textContent = 
+                `${data.number_and_street}, ${data.city}, ${data.state} ${data.zip_code}`;
+            document.getElementById('infoDate').textContent = new Date(data.created_at).toLocaleDateString();
+            document.getElementById('signInfo').classList.remove('hidden');
+        } else {
+            showAlert('signAlert', data.error || 'Form not found', 'error');
+        }
+    } catch (err) {
+        console.error('Error loading form:', err);
+        showAlert('signAlert', 'Error loading form details', 'error');
+    }
+}
+
+// Sign with authentication (no PIN needed)
+async function signWithAuth() {
+    setLoading('signSubmitBtn', true);
+    hideAlert('signAlert');
+    hideResult('signResult');
+
+    try {
+        const res = await fetch(`${API_BASE}/sign-form/${currentFormId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({}) // No PIN needed, auth handled by headers
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            document.getElementById('signResult').classList.add('show');
+        } else {
+            showAlert('signAlert', data.error || 'Error signing certificate', 'error');
+        }
+    } catch (err) {
+        showAlert('signAlert', 'Network error. Please try again.', 'error');
+    } finally {
+        setLoading('signSubmitBtn', false);
+    }
+}
 
         async function showDownloadPage(formId) {
             document.getElementById('downloadPage').classList.remove('hidden');
